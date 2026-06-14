@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { redirect } from "next/navigation"
 import { getCoursesByDepartment, getDepartments, getUserRole } from "@/app/actions/materials"
 import { UploadMaterialForm } from "@/components/upload-material-form"

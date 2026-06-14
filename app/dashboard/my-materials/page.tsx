@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { redirect } from "next/navigation"
 import { getUserRole, getMyMaterials } from "@/app/actions/materials"
 import { MyMaterialsList } from "@/components/my-materials-list"

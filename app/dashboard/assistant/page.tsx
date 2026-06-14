@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getUserSubscription } from "@/app/actions/subscriptions"
 import { AssistantChat } from "@/components/assistant-chat"
 

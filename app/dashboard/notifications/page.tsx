@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getUserNotifications, getNotificationArchive, getNotificationPreferences } from "@/app/actions/notifications"
 import { NotificationsPanel } from "@/components/notifications-panel"
 

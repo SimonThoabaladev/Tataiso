@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import Link from "next/link"
 import { getAllUsers, getUserRole, getPlatformActivityReport } from "@/app/actions/materials"
 import { getCoursesForOnboarding } from "@/app/actions/onboarding"

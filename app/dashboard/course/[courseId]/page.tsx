@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { notFound } from "next/navigation"
 import { getCourseWithDepartment, getMaterialsByCourse, getUserRole } from "@/app/actions/materials"
 import { getUserSubscription } from "@/app/actions/subscriptions"

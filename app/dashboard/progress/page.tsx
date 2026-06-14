@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getProgressReport, getProgressConsent } from "@/app/actions/progress"
 import { ProgressReport } from "@/components/progress-report"
 import { ConsentCard } from "@/components/consent-card"

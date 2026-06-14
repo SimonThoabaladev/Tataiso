@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getUserRole, getDepartments, getCoursesByDepartment, getDashboardStats, getMyMaterials } from "@/app/actions/materials"
 import { getUserNotifications } from "@/app/actions/notifications"
 import { getUserSubscription } from "@/app/actions/subscriptions"

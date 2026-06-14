@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getUserAchievements, getAllAchievementDefs } from "@/app/actions/achievements"
 import { AchievementsGallery } from "@/components/achievements-gallery"
 

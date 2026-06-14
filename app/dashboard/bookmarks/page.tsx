@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getUserBookmarks } from "@/app/actions/materials"
 import { BookmarksList } from "@/components/bookmarks-list"
 

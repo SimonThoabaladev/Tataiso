@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { SearchMaterials } from "@/components/search-materials"
 
 export default function SearchPage() {

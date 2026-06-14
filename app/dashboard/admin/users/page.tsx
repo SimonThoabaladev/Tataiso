@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { getAllUsers, getUserRole } from "@/app/actions/materials"
 import { redirect } from "next/navigation"
 import { AdminPanel } from "@/components/admin-panel"
