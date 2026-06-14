@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { DashboardNav } from "@/components/dashboard-nav"
 import { getUserRole, getUserData } from "@/app/actions/materials"
+import { hasCompletedOnboarding } from "@/app/actions/onboarding"
 
 export default async function DashboardLayout({
   children,
@@ -12,7 +13,7 @@ export default async function DashboardLayout({
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) redirect("/sign-in")
 
-  // Req 11.2 — suspended users are blocked from accessing any dashboard page
+  // Req 11.2 — suspended users are blocked
   const userData = await getUserData()
   if (userData?.suspended) {
     return (
@@ -29,6 +30,12 @@ export default async function DashboardLayout({
   }
 
   const role = await getUserRole()
+
+  // Students who haven't completed onboarding get redirected
+  if (role === "student") {
+    const done = await hasCompletedOnboarding()
+    if (!done) redirect("/onboarding")
+  }
 
   return (
     <div className="min-h-screen bg-background">

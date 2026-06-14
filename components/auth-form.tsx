@@ -163,8 +163,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           setLoading(false)
           return
         }
-        // After successful sign-up, redirect to subscription selection (Req 1.5)
-        router.push("/pricing")
+        // Students go to onboarding; instructors go to dashboard
+        if (role === "student") {
+          router.push("/onboarding")
+        } else {
+          router.push("/dashboard")
+        }
         router.refresh()
       } else {
         const result = await authClient.signIn.email({ email, password })

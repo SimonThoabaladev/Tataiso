@@ -108,3 +108,25 @@ CREATE TABLE IF NOT EXISTS "admin_audit_log" (
   "details" text,
   "createdAt" timestamp NOT NULL DEFAULT now()
 );
+
+-- ─── courses table: popular flag ──────────────────────────────
+ALTER TABLE "courses"
+  ADD COLUMN IF NOT EXISTS "popular" boolean NOT NULL DEFAULT false;
+
+-- ─── student_profile ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS "student_profile" (
+  "id" serial PRIMARY KEY,
+  "userId" text NOT NULL UNIQUE,
+  "studentNumber" text NOT NULL,
+  "courseId" integer NOT NULL,
+  "selectedModules" text NOT NULL DEFAULT '[]',
+  "onboardingComplete" boolean NOT NULL DEFAULT false,
+  "createdAt" timestamp NOT NULL DEFAULT now(),
+  "updatedAt" timestamp NOT NULL DEFAULT now()
+);
+
+-- Mark popular courses (Engineering Mathematics + Communication Skills)
+-- This runs safely even if the courses don't exist yet
+UPDATE "courses" SET "popular" = true
+WHERE lower("name") LIKE '%engineering mathematics%'
+   OR lower("name") LIKE '%communication skills%';

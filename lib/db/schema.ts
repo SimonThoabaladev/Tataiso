@@ -86,6 +86,8 @@ export const courses = pgTable(
     code: text("code").notNull(),
     name: text("name").notNull(),
     description: text("description"),
+    /** Admin-controlled: show at top of course picker */
+    popular: boolean("popular").notNull().default(false),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
   },
   (table) => [
@@ -342,4 +344,27 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   /** JSON snapshot of what changed */
   details: text("details"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
+})
+
+// ─────────────────────────────────────────────────────────────
+// Student onboarding profile
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Stored after the student completes onboarding.
+ * One row per student (upsertable).
+ */
+export const studentProfile = pgTable("student_profile", {
+  id: serial("id").primaryKey(),
+  userId: text("userId").notNull().unique(),
+  /** Institutional student number, e.g. "2021/12345" */
+  studentNumber: text("studentNumber").notNull(),
+  /** Primary enrolled course */
+  courseId: integer("courseId").notNull(),
+  /** JSON array of module/material IDs the student selected */
+  selectedModules: text("selectedModules").notNull().default("[]"),
+  /** Whether onboarding has been completed */
+  onboardingComplete: boolean("onboardingComplete").notNull().default(false),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })
