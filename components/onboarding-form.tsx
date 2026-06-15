@@ -27,8 +27,18 @@ import {
 import {
   saveOnboardingProfile,
   getModulesForCourse,
-  validateStudentNumber,
 } from "@/app/actions/onboarding"
+
+// Inline validation — validateStudentNumber cannot be exported from a "use server" file
+function validateStudentNumber(value: string): string | null {
+  const cleaned = value.trim()
+  if (!cleaned) return "Student number is required."
+  const re = /^[A-Za-z0-9/\-]{4,20}$/
+  if (!re.test(cleaned)) {
+    return "Enter a valid student number (e.g. 2021/12345 or ST2021001)."
+  }
+  return null
+}
 
 interface Course {
   id: number

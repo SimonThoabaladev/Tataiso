@@ -64,22 +64,6 @@ export async function getModulesForCourse(courseId: number) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Validation
-// ─────────────────────────────────────────────────────────────
-
-/** Student number: 4 digits / 4–6 digits  e.g. 2021/12345 or just 202112345 */
-export function validateStudentNumber(value: string): string | null {
-  const cleaned = value.trim()
-  if (!cleaned) return "Student number is required."
-  // Accept formats: 2021/12345, 202112345, ST2021001, or any alphanumeric 6-12 chars
-  const re = /^[A-Za-z0-9/\-]{4,20}$/
-  if (!re.test(cleaned)) {
-    return "Enter a valid student number (e.g. 2021/12345 or ST2021001)."
-  }
-  return null
-}
-
-// ─────────────────────────────────────────────────────────────
 // Save onboarding profile
 // ─────────────────────────────────────────────────────────────
 
@@ -104,9 +88,14 @@ export async function saveOnboardingProfile(
   }
 
   // Validate student number
-  const snError = validateStudentNumber(data.studentNumber)
-  if (snError) {
-    return { error: snError, fieldErrors: { studentNumber: snError } }
+  const cleaned = data.studentNumber.trim()
+  if (!cleaned) {
+    return { error: "Student number is required.", fieldErrors: { studentNumber: "Student number is required." } }
+  }
+  const re = /^[A-Za-z0-9/\-]{4,20}$/
+  if (!re.test(cleaned)) {
+    const msg = "Enter a valid student number (e.g. 2021/12345 or ST2021001)."
+    return { error: msg, fieldErrors: { studentNumber: msg } }
   }
 
   if (!data.courseId) {
