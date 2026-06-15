@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 
 /**
- * Minimal middleware.
- * Suspension enforcement (Req 11.2) is handled in the dashboard layout
- * via the server action getUserRole/getUserData which checks user.suspended.
- * Better Auth manages session invalidation on the server side.
+ * Proxy (formerly middleware) — Next.js 16 uses this file instead of middleware.ts
+ * Suspension enforcement is handled in the dashboard layout via server actions.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   return NextResponse.next()
 }
 
