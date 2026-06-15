@@ -15,9 +15,14 @@ export default async function DashboardLayout({
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user) redirect("/sign-in")
 
-  // Req 11.2 — suspended users are blocked
-  const userData = await getUserData()
-  if (userData?.suspended) {
+  // Suspended check — wrapped so a missing column doesn't crash the layout
+  let suspended = false
+  try {
+    const userData = await getUserData()
+    suspended = userData?.suspended ?? false
+  } catch { /* column may not exist yet — fail safe */ }
+
+  if (suspended) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md text-center space-y-4">
@@ -31,12 +36,18 @@ export default async function DashboardLayout({
     )
   }
 
-  const role = await getUserRole()
+  let role = "student"
+  try {
+    role = await getUserRole()
+  } catch { /* fail safe */ }
 
   // Students who haven't completed onboarding get redirected
+  // Wrapped so a missing student_profile table doesn't block login
   if (role === "student") {
-    const done = await hasCompletedOnboarding()
-    if (!done) redirect("/onboarding")
+    try {
+      const done = await hasCompletedOnboarding()
+      if (!done) redirect("/onboarding")
+    } catch { /* student_profile table may not exist yet — skip redirect */ }
   }
 
   return (

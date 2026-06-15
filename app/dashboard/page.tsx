@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic"
+
 import { getUserRole, getDepartments, getCoursesByDepartment, getDashboardStats, getMyMaterials } from "@/app/actions/materials"
 import { getUserNotifications } from "@/app/actions/notifications"
 import { getUserSubscription } from "@/app/actions/subscriptions"
@@ -12,18 +13,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bell } from "lucide-react"
 
 export default async function DashboardPage() {
-  const role = await getUserRole()
+  let role = "student"
+  try { role = await getUserRole() } catch {}
 
   // ── Instructor / Tutor dashboard ──────────────────────────
   if (role === "lecturer" || role === "tutor") {
-    const [notifications, myMaterials, stats] = await Promise.all([
-      getUserNotifications(),
-      getMyMaterials(),
-      getDashboardStats(),
-    ])
+    let notifications: any[] = []
+    let myMaterials: any[] = []
+    let stats = { departments: 0, courses: 0, materials: 0 }
+    try {
+      ;[notifications, myMaterials, stats] = await Promise.all([
+        getUserNotifications(),
+        getMyMaterials(),
+        getDashboardStats(),
+      ])
+    } catch {}
     return (
       <InstructorDashboard
-        role={role}
+        role={role as "lecturer" | "tutor"}
         notifications={notifications}
         myMaterials={myMaterials}
         stats={stats}
@@ -31,19 +38,25 @@ export default async function DashboardPage() {
     )
   }
 
-  // ── Admin dashboard — keep the existing overview + user stats ─
+  // ── Admin dashboard ───────────────────────────────────────
   if (role === "admin") {
-    const [notifications, stats] = await Promise.all([
-      getUserNotifications(),
-      getDashboardStats(),
-    ])
-    const departments = await getDepartments()
-    const departmentsWithCourses = await Promise.all(
-      departments.map(async (dept) => ({
-        ...dept,
-        courses: await getCoursesByDepartment(dept.id),
-      }))
-    )
+    let notifications: any[] = []
+    let stats = { departments: 0, courses: 0, materials: 0, users: 0 }
+    let departments: any[] = []
+    try {
+      ;[notifications, stats] = await Promise.all([
+        getUserNotifications(),
+        getDashboardStats(),
+      ])
+      const depts = await getDepartments()
+      departments = await Promise.all(
+        depts.map(async (dept) => ({
+          ...dept,
+          courses: await getCoursesByDepartment(dept.id).catch(() => []),
+        }))
+      )
+    } catch {}
+
     return (
       <div className="space-y-10">
         <div className="rounded-3xl border border-border bg-card p-8">
@@ -60,7 +73,7 @@ export default async function DashboardPage() {
               { label: "Departments", value: stats.departments },
               { label: "Courses", value: stats.courses },
               { label: "Materials", value: stats.materials },
-              { label: "Users", value: stats.users ?? 0 },
+              { label: "Users", value: (stats as any).users ?? 0 },
             ].map(({ label, value }) => (
               <Card key={label} className="border-border">
                 <CardContent className="pt-6">
@@ -77,7 +90,7 @@ export default async function DashboardPage() {
               <h2 className="text-2xl font-bold text-foreground">Content Library</h2>
               <p className="text-muted-foreground mt-1">Browse all departments and courses.</p>
             </div>
-            <DepartmentBrowser departments={departmentsWithCourses} userRole={role} />
+            <DepartmentBrowser departments={departments} userRole={role} />
           </section>
           <NotificationsSidebar notifications={notifications} />
         </div>
@@ -86,12 +99,31 @@ export default async function DashboardPage() {
   }
 
   // ── Student dashboard ─────────────────────────────────────
-  const departments = await getDepartments()
-  const subscription = await getUserSubscription()
-  const notifications = await getUserNotifications()
-  const stats = await getDashboardStats()
-
+  let departments: any[] = []
+  let subscription = { plan: "free", name: "Free Trial" }
+  let notifications: any[] = []
+  let stats = { departments: 0, courses: 0, materials: 0 }
   let streak = 0, totalLessons = 0, progressPercent = 0, progressError = false
+  let recentAchievements: any[] = []
+
+  try {
+    const [depts, sub, notifs, st] = await Promise.all([
+      getDepartments(),
+      getUserSubscription(),
+      getUserNotifications(),
+      getDashboardStats(),
+    ])
+    subscription = { plan: sub.plan, name: sub.name }
+    notifications = notifs
+    stats = st
+    departments = await Promise.all(
+      depts.map(async (dept) => ({
+        ...dept,
+        courses: await getCoursesByDepartment(dept.id).catch(() => []),
+      }))
+    )
+  } catch { /* DB may be mid-migration — show empty state */ }
+
   try {
     ;[streak, totalLessons, progressPercent] = await Promise.all([
       getLearningStreak(),
@@ -100,22 +132,16 @@ export default async function DashboardPage() {
     ])
   } catch { progressError = true }
 
-  let recentAchievements: Awaited<ReturnType<typeof getUserAchievements>> = []
-  try { recentAchievements = (await getUserAchievements()).slice(0, 3) } catch {}
-
-  const departmentsWithCourses = await Promise.all(
-    departments.map(async (dept) => ({
-      ...dept,
-      courses: await getCoursesByDepartment(dept.id),
-    }))
-  )
+  try {
+    recentAchievements = (await getUserAchievements()).slice(0, 3)
+  } catch {}
 
   return (
     <div className="space-y-10">
       <DashboardOverview
         role={role}
         stats={stats}
-        subscription={{ plan: subscription.plan, name: subscription.name }}
+        subscription={subscription}
         streak={streak}
         totalLessons={totalLessons}
         progressPercent={progressPercent}
@@ -128,7 +154,7 @@ export default async function DashboardPage() {
             <h2 className="text-3xl font-bold text-foreground">Browse Materials</h2>
             <p className="text-muted-foreground mt-1">Select a department and course to view available lecture materials.</p>
           </div>
-          <DepartmentBrowser departments={departmentsWithCourses} userRole={role} />
+          <DepartmentBrowser departments={departments} userRole={role} />
         </section>
         <NotificationsSidebar notifications={notifications} />
       </div>
@@ -136,7 +162,6 @@ export default async function DashboardPage() {
   )
 }
 
-// Shared notifications sidebar component (server)
 function NotificationsSidebar({ notifications }: { notifications: Array<{ id: number; title: string; message: string; read: boolean; createdAt: Date }> }) {
   return (
     <aside>

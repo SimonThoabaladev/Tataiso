@@ -16,10 +16,16 @@ export default async function OnboardingPage() {
   if (role !== "student") redirect("/dashboard")
 
   // Already completed — go to dashboard
-  const done = await hasCompletedOnboarding()
+  let done = false
+  try {
+    done = await hasCompletedOnboarding()
+  } catch { /* student_profile table may not exist yet */ }
   if (done) redirect("/dashboard")
 
-  const allCourses = await getCoursesForOnboarding()
+  let allCourses: Awaited<ReturnType<typeof getCoursesForOnboarding>> = []
+  try {
+    allCourses = await getCoursesForOnboarding()
+  } catch { /* courses table or popular column may not exist yet */ }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
