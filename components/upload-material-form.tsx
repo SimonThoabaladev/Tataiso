@@ -113,18 +113,6 @@ function FileUploadTab({ departments }: { departments: Department[] }) {
       return
     }
 
-    // Req 10.2 — video must be MP4 or WebM, max 2 GB
-    if (selectedFile.type.startsWith("video/")) {
-      if (!["video/mp4", "video/webm"].includes(selectedFile.type)) {
-        setMessage({ type: "error", text: "Video files must be MP4 or WebM format." })
-        return
-      }
-      if (selectedFile.size > 2 * 1024 * 1024 * 1024) {
-        setMessage({ type: "error", text: "Video files must not exceed 2 GB." })
-        return
-      }
-    }
-
     setLoading(true)
     setMessage(null)
 
@@ -200,23 +188,30 @@ function FileUploadTab({ departments }: { departments: Department[] }) {
               id="file-input"
               type="file"
               className="hidden"
-              accept=".pdf,.doc,.docx,.mp3,.wav,.mp4,.webm"
+              accept="*/*"
               onChange={handleFileSelect}
             />
             <Upload className="h-7 w-7 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              {selectedFile ? selectedFile.name : "Click to select — PDF, Word, MP3, WAV, MP4, WebM"}
+              {selectedFile ? selectedFile.name : "Click to select any file"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PDF, Word, PPT, Excel, Audio, Video (up to 2 GB), Images, and more
             </p>
           </div>
         </div>
       </div>
 
       <div className="space-y-4 rounded-3xl border border-border bg-card p-6">
-        <h3 className="font-semibold text-foreground">File Requirements</h3>
+        <h3 className="font-semibold text-foreground">Supported Formats</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• PDF and Word documents</li>
-          <li>• MP3 and WAV audio files</li>
-          <li>• MP4 and WebM videos (max 2 GB)</li>
+          <li>• PowerPoint presentations</li>
+          <li>• Excel spreadsheets</li>
+          <li>• MP3, WAV, and other audio</li>
+          <li>• MP4, WebM, MOV video (max 2 GB)</li>
+          <li>• Images (JPG, PNG, GIF, etc.)</li>
+          <li>• Text and Markdown files</li>
         </ul>
         {message && (
           <div className={`rounded-xl border p-3 flex items-start gap-2 text-sm ${

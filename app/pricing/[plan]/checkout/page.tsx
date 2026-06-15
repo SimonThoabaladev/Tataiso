@@ -25,20 +25,25 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
     redirect("/sign-in")
   }
 
+  // Detect which gateways are configured
+  const stripeEnabled =
+    !!process.env.STRIPE_SECRET_KEY &&
+    !process.env.STRIPE_SECRET_KEY.includes("your_stripe")
+
+  const paystackEnabled =
+    !!process.env.PAYSTACK_SECRET_KEY &&
+    !process.env.PAYSTACK_SECRET_KEY.includes("your_paystack")
+
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto space-y-8">
+        <div className="max-w-lg mx-auto space-y-8">
           <div className="rounded-3xl border border-border bg-card p-8 text-center">
-            <h1 className="text-4xl font-bold text-foreground">
-              Confirm your {planDetails.name} plan
+            <h1 className="text-3xl font-bold text-foreground">
+              {planDetails.name} Plan
             </h1>
-            <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto">
-              You are about to activate the {planDetails.name} plan at{" "}
-              {planDetails.currency}
-              {planDetails.price}/month. After payment is confirmed, your subscription will be
-              activated and you will have immediate access to all{" "}
-              {planDetails.name.toLowerCase()} features.
+            <p className="mt-3 text-base text-muted-foreground max-w-sm mx-auto">
+              {planDetails.currency}{planDetails.price}/month · {planDetails.description}
             </p>
           </div>
 
@@ -48,6 +53,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
             price={`${planDetails.currency}${planDetails.price}`}
             description={planDetails.description}
             features={planDetails.features}
+            stripeEnabled={stripeEnabled}
+            paystackEnabled={paystackEnabled}
           />
         </div>
       </div>
