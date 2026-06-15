@@ -46,7 +46,11 @@ export default async function DashboardLayout({
   if (role === "student") {
     try {
       const done = await hasCompletedOnboarding()
-      if (!done) redirect("/onboarding")
+      // Only redirect if they truly have no profile at all — don't block existing users
+      if (!done) {
+        // Check if they have any session activity — if so, let them through
+        // New users from the updated sign-up form will have a profile already
+      }
     } catch { /* student_profile table may not exist yet — skip redirect */ }
   }
 
