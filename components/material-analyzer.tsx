@@ -23,6 +23,8 @@ import {
   File,
 } from "lucide-react"
 
+const MODEL_ID_DISPLAY = "gemini-2.0-flash"
+
 // ─── Types ─────────────────────────────────────────────────
 interface AnalysisResult {
   explanation: string
@@ -171,28 +173,78 @@ export function MaterialAnalyzer() {
     setAnalysisError(null)
     setResult(null)
     setUploadProgress(0)
+    setFollowUps([])
 
-    // Simulate upload progress
     const progressInterval = setInterval(() => {
-      setUploadProgress((p) => Math.min(p + 10, 85))
-    }, 200)
+      setUploadProgress((p) => Math.min(p + 8, 80))
+    }, 250)
 
     try {
       const form = new FormData()
       form.append("file", selectedFile)
 
-      const res = await fetch("/api/assistant/analyze", {
-        method: "POST",
-        body: form,
-      })
+      const res = await fetch("/api/assistant/analyze", { method: "POST", body: form })
 
       clearInterval(progressInterval)
+      setUploadProgress(85)
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({ error: "Analysis failed" }))
+        throw new Error(data.error ?? "Analysis failed")
+      }
+
+      const reader = res.body.getReader()
+      const dec = new TextDecoder()
+      let buffer = ""
+      let accumulated = ""
+      let meta: any = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += dec.decode(value, { stream: true })
+        const lines = buffer.split("\n\n")
+        buffer = lines.pop() ?? ""
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          const payload = line.slice(6).trim()
+          if (payload === "[DONE]") break
+
+          let parsed: any
+          try { parsed = JSON.parse(payload) } catch { continue }
+
+          if (typeof parsed === "string") {
+            accumulated += parsed
+            // Show streaming text live
+            setResult((prev) => ({
+              explanation: accumulated,
+              fileName: selectedFile.name,
+              fileSize: selectedFile.size,
+              fileType: selectedFile.type,
+              category: category ?? "file",
+              model: MODEL_ID_DISPLAY,
+              ...(prev ?? {}),
+            }))
+          } else if (parsed?.error) {
+            throw new Error(parsed.error)
+          } else if (parsed?.meta) {
+            meta = parsed.meta
+          }
+        }
+      }
+
       setUploadProgress(100)
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Analysis failed")
-
-      setResult(data)
+      if (meta && accumulated) {
+        setResult({
+          explanation: accumulated,
+          fileName: meta.fileName ?? selectedFile.name,
+          fileSize: selectedFile.size,
+          fileType: selectedFile.type,
+          category: meta.category ?? category ?? "file",
+          model: meta.model ?? MODEL_ID_DISPLAY,
+        })
+      }
     } catch (err) {
       setAnalysisError(err instanceof Error ? err.message : "Analysis failed")
     } finally {
